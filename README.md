@@ -7,11 +7,11 @@
 _Hope everyone's doing well. This is my repo of solutions for Advent of Code, starting from 2021. I hope to do this in
 multiple languages, given I'm not being lazy_ 😂 _!_
 
-🎉 **Task 1 Completed**
+- 🎉 **Task 1 Completed**
 
-🎊 **Task 1 & 2 Completed**
+- 🎊 **Task 1 & 2 Completed**
 
-|Day|2021|
+|_Day_|_2021_|
 |:---:|:---:|
 |1|🎊|
 |2|
