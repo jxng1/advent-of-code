@@ -13,7 +13,7 @@ multiple languages, given I'm not being lazy_ 😂 _!_
 
 |_Day_|_2021_|
 |:---:|:---:|
-|1|🎊|
+|1|[🎊](2021/src/main/java/com/jxng1/days/Day1.java)|
 |2|
 |3|
 |4|
