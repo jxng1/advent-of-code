@@ -5,11 +5,13 @@
 **_Please support the creator of AoC if you'd like, at https://adventofcode.com._**
 
 _Hope everyone's doing well. This is my repo of solutions for Advent of Code, starting from 2021. I hope to do this in
-multiple languages, given I'm not being lazy_ 😂 _!_
+multiple languages, given I'm not being lazy_ 😂 _(hence the focus on **Java** only...)!_
 
 - 🎉 **Task 1 Completed**
 
 - 🎊 **Task 1 & 2 Completed**
+
+---
 
 |_Day_|_2021_|
 |:---:|:---:|
