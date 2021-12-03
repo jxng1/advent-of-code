@@ -5,7 +5,7 @@
 **_Please support the creator of AoC if you'd like, at https://adventofcode.com._**
 
 _Hope everyone's doing well. This is my repo of solutions for Advent of Code, starting from 2021. I hope to do this in
-multiple languages, given I'm not being lazy_ 😂 _(hence the focus on **Java** only...)!_
+multiple languages, given I'm not being lazy_ 😂 _(hence the focus on **Java** only for now...)!_
 
 - 🎉 **Task 1 Completed**
 
