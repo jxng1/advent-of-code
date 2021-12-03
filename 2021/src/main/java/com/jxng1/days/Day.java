@@ -7,17 +7,20 @@ import java.util.stream.Collectors;
 
 public abstract class Day {
 
-    public Day(String day) {
-        List<Integer> input = InputReader.getInputReader().getInputAsList("day" + day + ".txt").stream()
-                .map(Integer::parseInt)
-                .collect(Collectors.toList());
+    public Day(int day) {
+        List<String> input = InputReader.getInputReader().getInputAsList("day" + day + ".txt");
 
         System.out.println("Day: " + day);
         System.out.println("Task 1 Output: " + task1(input));
-        System.out.println("Task 2 Output: " + task1(input));
+        System.out.println("Task 2 Output: " + task2(input));
+        System.out.println("---");
     }
 
-    abstract int task1(List<Integer> input);
+    abstract int task1(List<String> input);
 
-    abstract int task2(List<Integer> input);
+    abstract int task2(List<String> input);
+
+    public static List<Integer> convertToIntegerList(List<String> list) {
+        return list.stream().map(Integer::parseInt).collect(Collectors.toList());
+    }
 }
