@@ -17,7 +17,7 @@ multiple languages, given I'm not being lazy_ 😂 _(hence the focus on **Java**
 |:---:|:---:|
 |1|[🎊](2021/src/main/java/com/jxng1/days/Day1.java)|
 |2|[🎊](2021/src/main/java/com/jxng1/days/Day2.java)|
-|3|
+|3|[🎊](2021/src/main/java/com/jxng1/days/Day3.java)|
 |4|
 |5|
 |6|
