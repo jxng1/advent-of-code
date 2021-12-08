@@ -9,7 +9,7 @@ public class Main {
         new Day1(1);
         new Day2(2);
         new Day3(3);
-//        new Day4(4);
+        new Day4(4);
 //        new Day5(5);
 //        new Day6(6);
 //        new Day7(7);
