@@ -11,13 +11,13 @@ public class Day4 extends Day {
     }
 
     @Override
-    int task1(List<String> input) {
-        return bingoSolver(input).entrySet().stream().findFirst().get().getValue();
+    String task1(List<String> input) {
+        return String.valueOf(bingoSolver(input).entrySet().stream().findFirst().get().getValue());
     }
 
     @Override
-    int task2(List<String> input) {
-        return bingoSolver(input).values().stream().reduce((first, second) -> second).get();
+    String task2(List<String> input) {
+        return String.valueOf(bingoSolver(input).values().stream().reduce((first, second) -> second).get());
     }
 
     private Map<String[][], Integer> bingoSolver(List<String> input) {

@@ -13,7 +13,7 @@ public class Day2 extends Day {
     }
 
     @Override
-    int task1(List<String> input) {
+    String task1(List<String> input) {
         distance = 0;
         depth = 0;
 
@@ -27,11 +27,11 @@ public class Day2 extends Day {
             }
         });
 
-        return distance * depth;
+        return String.valueOf(distance * depth);
     }
 
     @Override
-    int task2(List<String> input) {
+    String task2(List<String> input) {
         distance = 0;
         depth = 0;
         aim = 0;
@@ -49,6 +49,6 @@ public class Day2 extends Day {
             }
         });
 
-        return distance * depth;
+        return String.valueOf(distance * depth);
     }
 }

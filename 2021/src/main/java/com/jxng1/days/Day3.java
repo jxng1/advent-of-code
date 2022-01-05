@@ -2,7 +2,6 @@ package main.java.com.jxng1.days;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 
 public class Day3 extends Day {
 
@@ -13,7 +12,7 @@ public class Day3 extends Day {
     }
 
     @Override
-    int task1(List<String> input) {
+    String task1(List<String> input) {
         int inputLength = input.get(0).length();
         StringBuilder gammaRate = new StringBuilder();
         StringBuilder epsilonRate = new StringBuilder();
@@ -34,11 +33,11 @@ public class Day3 extends Day {
             epsilonRate.append(zeroCount <= oneCount ? "0" : "1");
         }
 
-        return Integer.parseInt(String.valueOf(gammaRate), 2) * Integer.parseInt(String.valueOf(epsilonRate), 2);
+        return String.valueOf(Integer.parseInt(String.valueOf(gammaRate), 2) * Integer.parseInt(String.valueOf(epsilonRate), 2));
     }
 
     @Override
-    int task2(List<String> input) {
+    String task2(List<String> input) {
         index = 0;
         int inputLength = input.get(0).length();
 
@@ -82,6 +81,6 @@ public class Day3 extends Day {
             index++;
         }
 
-        return Integer.parseInt(oxyCopy.get(0), 2) * Integer.parseInt(CO2Copy.get(0), 2);
+        return String.valueOf(Integer.parseInt(oxyCopy.get(0), 2) * Integer.parseInt(CO2Copy.get(0), 2));
     }
 }

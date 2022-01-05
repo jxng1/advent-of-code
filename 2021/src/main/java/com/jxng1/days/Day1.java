@@ -9,20 +9,20 @@ public class Day1 extends Day {
         super(day);
     }
 
-    public int task1(List<String> input) {
+    public String task1(List<String> input) {
         List<Integer> intInput = convertToIntegerList(input);
 
-        return (int) IntStream.range(0, input.size() - 1)
+        return String.valueOf(IntStream.range(0, input.size() - 1)
                 .filter(i -> intInput.get(i) < intInput.get(i + 1))
-                .mapToObj(input::get).count();
+                .mapToObj(input::get).count());
     }
 
-    public int task2(List<String> input) {
+    public String task2(List<String> input) {
         List<Integer> intInput = convertToIntegerList(input);
 
-        return (int) IntStream.range(0, input.size() - 3)
+        return String.valueOf(IntStream.range(0, input.size() - 3)
                 .filter(i -> find3Sum(intInput, i) < find3Sum(intInput, i + 1))
-                .mapToObj(input::get).count();
+                .mapToObj(input::get).count());
     }
 
     private static int find3Sum(List<Integer> input, int index) {

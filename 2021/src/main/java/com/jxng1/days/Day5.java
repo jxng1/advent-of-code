@@ -10,23 +10,23 @@ public class Day5 extends Day {
     }
 
     @Override
-    int task1(List<String> input) {
+    String task1(List<String> input) {
         var query = part1(input);
 
-        return (int) IntStream.range(0, query.length)
+        return String.valueOf(IntStream.range(0, query.length)
                 .flatMap(r -> Arrays.stream(query[r]))
                 .filter(i -> i >= 2)
-                .count();
+                .count());
     }
 
     @Override
-    int task2(List<String> input) {
+    String task2(List<String> input) {
         var query = part2(input);
 
-        return (int) IntStream.range(0, query.length)
+        return String.valueOf(IntStream.range(0, query.length)
                 .flatMap(r -> Arrays.stream(query[r]))
                 .filter(i -> i >= 2)
-                .count();
+                .count());
     }
 
     private int[][] part1(List<String> input) {

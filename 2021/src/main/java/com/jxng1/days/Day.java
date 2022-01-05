@@ -16,9 +16,9 @@ public abstract class Day {
         System.out.println("---");
     }
 
-    abstract int task1(List<String> input);
+    abstract String task1(List<String> input);
 
-    abstract int task2(List<String> input);
+    abstract String task2(List<String> input);
 
     public static List<Integer> convertToIntegerList(List<String> list) {
         return list.stream().map(Integer::parseInt).collect(Collectors.toList());
