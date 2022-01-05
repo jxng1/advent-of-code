@@ -2,10 +2,12 @@
 
 ### Advent of Code, starting from 2021...
 
-**_Please support the creator of AoC if you'd like, at https://adventofcode.com._**
+**_Please support the creator of AoC if you'd like, at https://adventofcode.com
+._**
 
-_Hope everyone's doing well. This is my repo of solutions for Advent of Code, starting from 2021. I hope to do this in
-multiple languages, given I'm not being lazy_ 😂 _(hence the focus on **Java** only for now...)!_
+_Hope everyone's doing well. This is my repo of solutions for Advent of Code,
+starting from 2021. I hope to do this in multiple languages, given I'm not being
+lazy_ 😂 _(hence the focus on **Java** only for now...)!_
 
 - 🎉 **Task 1 Completed**
 
@@ -19,7 +21,7 @@ multiple languages, given I'm not being lazy_ 😂 _(hence the focus on **Java**
 |2|[🎊](2021/src/main/java/com/jxng1/days/Day2.java)|
 |3|[🎊](2021/src/main/java/com/jxng1/days/Day3.java)|
 |4|[🎊](2021/src/main/java/com/jxng1/days/Day4.java)|
-|5|
+|5|[🎊](2021/src/main/java/com/jxng1/days/Day5.java)|
 |6|
 |7|
 |8|
