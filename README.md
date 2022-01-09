@@ -26,7 +26,7 @@ lazy_ 😂 _(hence the focus on **Java** only for now...)!_
 |7|[🎊](2021/src/main/java/com/jxng1/days/Day7.java)|
 |8|[🎊](2021/src/main/java/com/jxng1/days/Day8.java)|
 |9|[🎊](2021/src/main/java/com/jxng1/days/Day9.java)|
-|10|
+|10|[🎊](2021/src/main/java/com/jxng1/days/Day10.java)|
 |11|
 |12|
 |13|
