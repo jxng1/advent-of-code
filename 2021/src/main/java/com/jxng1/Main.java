@@ -15,7 +15,7 @@ public class Main {
         new Day7(7);
         new Day8(8);
         new Day9(9);
-//        new Day10(10);
+        new Day10(10);
 //        new Day11(11);
 //        new Day12(12);
 //        new Day13(13);
