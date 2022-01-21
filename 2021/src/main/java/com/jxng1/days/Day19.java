@@ -1,6 +1,8 @@
 package main.java.com.jxng1.days;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 
 public class Day19 extends Day {
     public Day19(int day) {
@@ -11,9 +13,11 @@ public class Day19 extends Day {
     String task1(List<String> input) {
         Beacon a = new Beacon(new Point3D(-618, -824, -621));
         Beacon b = new Beacon(new Point3D(-537, -823, -458));
+        Beacon c = new Beacon(new Point3D(-200, 500, 300));
         Scanner tmp = new Scanner(0, new Point3D(0, 0, 0));
         tmp.addBeacon(a);
         tmp.addBeacon(b);
+        tmp.addBeacon(c);
 
         tmp.calculateBeaconsDistances();
 
@@ -29,7 +33,8 @@ public class Day19 extends Day {
     class Scanner {
         private Point3D location;
         int id;
-        private Set<Beacon> beacons = new HashSet<>();
+        private List<Beacon> beacons = new LinkedList<>();
+        private int[][] beaconDistanceMatrix;
 
         public Scanner(int id, Point3D location) {
             this.id = id;
@@ -40,27 +45,42 @@ public class Day19 extends Day {
             beacons.add(beacon);
         }
 
-        public void calculateBeaconsDistances() {
-            for (Beacon a : beacons) {
-                for (Beacon b : beacons) {
-                    if (a.equals(b)) continue;
 
-                    a.linkBeacon(b);
+        public void calculateBeaconsDistances() {
+            int[][] tmp = new int[beacons.size()][beacons.size()];
+
+            for (int i = 0; i < beacons.size(); i++) {
+                for (int j = i + 1; j < beacons.size(); j++) {
+                    Beacon a = beacons.get(i);
+                    Beacon b = beacons.get(j);
+
+                    if (!a.equals(b)) {
+                        int ret = a.calculateStraightLineDistance(b);
+
+                        tmp[i][j] = tmp[j][i] = ret;
+                    }
                 }
             }
+
+            beaconDistanceMatrix = tmp;
         }
     }
 
     class Beacon {
         private Point3D location;
-        private Map<Beacon, Integer> beaconDistanceMap = new HashMap<>();
 
         public Beacon(Point3D location) {
             this.location = location;
         }
 
-        public void linkBeacon(Beacon beacon) {
-            beaconDistanceMap.put(beacon, location.calculateStraightLineDistance(beacon.location));
+        public Point3D getLocation() {
+            return location;
+        }
+
+        public int calculateStraightLineDistance(Beacon other) {
+            return (int) Math.sqrt(Math.pow(this.location.getX() - other.location.getX(), 2)
+                    + Math.pow(this.location.getY() - other.location.getY(), 2)
+                    + Math.pow(this.location.getZ() - other.location.getZ(), 2));
         }
 
         @Override
@@ -68,12 +88,12 @@ public class Day19 extends Day {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             Beacon beacon = (Beacon) o;
-            return Objects.equals(location, beacon.location) && Objects.equals(beaconDistanceMap, beacon.beaconDistanceMap);
+            return Objects.equals(location, beacon.location);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(location, beaconDistanceMap);
+            return Objects.hash(location);
         }
     }
 
@@ -88,10 +108,16 @@ public class Day19 extends Day {
             this.z = z;
         }
 
-        public int calculateStraightLineDistance(Point3D other) {
-            return (int) Math.sqrt(Math.pow(this.x - other.x, 2)
-                    + Math.pow(this.y - other.y, 2)
-                    + Math.pow(this.z - other.z, 2));
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public int getZ() {
+            return z;
         }
 
         @Override
