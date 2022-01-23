@@ -3,6 +3,10 @@ package main.java.com.jxng1.days;
 import main.java.com.jxng1.util.InputReader;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Day19 extends Day {
     public Day19(int day) {
@@ -11,64 +15,13 @@ public class Day19 extends Day {
 
     @Override
     String task1(List<String> input) {
-        //Map<Scanner, Set<Scanner>> scannerListMap = parseScanners(input);
-        List<String> sample = InputReader.getInputReader().getInputAsList("day19sample.txt");
-        var scannerListMap = parseScanners(sample);
+        List<Scanner> scanners = parseScanners(input);
+        var tmp = solve(scanners);
 
-        for (Scanner a : scannerListMap.keySet()) {
-            for (Scanner b : scannerListMap.keySet()) {
-                if (a.equals(b) || scannerListMap.get(a).contains(b) || scannerListMap.get(b).contains(a)) {
-                    continue;
-                }
-
-                // iterate over distance matrix and see if b matches any of them, if so, increment sharedBeaconEdgeCount
-                int sharedBeaconEdgeCount = 0;
-                int[][] aBeaconDistanceMatrix = a.getBeaconDistanceMatrix();
-                for (int i = 0; i < aBeaconDistanceMatrix.length; i++) {
-                    for (int j = i + 1; j < aBeaconDistanceMatrix[i].length; j++) {
-                        sharedBeaconEdgeCount = b.sharesBeaconToBeaconEdge(aBeaconDistanceMatrix[i][j]) ? sharedBeaconEdgeCount + 1 : sharedBeaconEdgeCount;
-
-                        if (sharedBeaconEdgeCount >= 12) {
-                            scannerListMap.get(a).add(b);
-                            scannerListMap.get(b).add(a);
-                            break;
-                        }
-                    }
-                    if (sharedBeaconEdgeCount >= 12) {
-                        break;
-                    }
-                }
-            }
-        }
+       // var test = parseScanners(InputReader.getInputReader().getInputAsList("day19sample.txt"));
+       // var tmp = solve(test);
 
         return null;
-    }
-
-    private Map<Scanner, Set<Scanner>> parseScanners(List<String> input) {
-        Map<Scanner, Set<Scanner>> ret = new HashMap<>();
-
-        int startIndex = 0;
-        int endIndex = 0;
-        int scannerID = 0;
-        for (String s : input) {
-            if (s.contains("--- scanner ")) {
-                startIndex = endIndex;
-                scannerID = Integer.parseInt(s.substring(12, 13));
-            } else if (s.isBlank() || endIndex == input.size() - 1) {
-                if (scannerID == 0) { // all positions are relative to scanner 0 so it must have a position of 0, 0, 0...
-                    ret.put(
-                            parseScanner(input.subList(startIndex + 1, endIndex), scannerID, new Point3D(0, 0, 0))
-                            , new HashSet<>());
-                } else {
-                    ret.put(
-                            parseScanner(input.subList(startIndex + 1, endIndex), scannerID, new Point3D(-1, -1, -1))
-                            , new HashSet<>());
-                }
-            }
-            endIndex++;
-        }
-
-        return ret;
     }
 
     @Override
@@ -76,118 +29,137 @@ public class Day19 extends Day {
         return null;
     }
 
-    private Scanner parseScanner(List<String> beaconsLocationList, int id, Point3D scannerLocation) {
-        Scanner scanner = new Scanner(id, scannerLocation);
+    private Set<Point3D> solve(List<Scanner> scanners) {
+        LinkedHashSet<Point3D> map = new LinkedHashSet<>();
+        LinkedList<Scanner> locatedScanners = new LinkedList<>();
 
-        for (String s : beaconsLocationList) {
-            var coordinates = Arrays.stream(s.split(",")).mapToInt(Integer::parseInt).toArray();
-            Beacon tmp = new Beacon(new Point3D(coordinates[0], coordinates[1], coordinates[2]));
+        Scanner base = scanners.get(0);
+        mapScanner(base, 0, 0, 0, map);
+        locatedScanners.add(base);
 
-            scanner.addBeacon(tmp);
+        while (locatedScanners.size() < scanners.size()) {
+            for (Scanner unlocatedScanner : scanners) {
+                if (locatedScanners.contains(unlocatedScanner)) {
+                    continue;
+                }
+
+                var hehe = unlocatedScanner.getOrientations().collect(Collectors.toList());
+                unlocatedScanner.getOrientations().map(scanner -> {
+                    var tmp = scanner;
+                    return scannerOverlapsWithMap(scanner, 12, map);
+                }).flatMap(Optional::stream).findFirst().ifPresent(offset -> {
+                    mapScanner(unlocatedScanner, offset.x, offset.y, offset.z, map);
+                    locatedScanners.add(unlocatedScanner);
+                });
+            }
         }
-        scanner.calculateBeaconsDistances();
 
-        return scanner;
+        return map;
+    }
+
+    private void mapScanner(Scanner scanner, int xOffset, int yOffset, int zOffset, Set<Point3D> map) {
+        scanner.setPosition(xOffset, yOffset, zOffset);
+        map.addAll(scanner.getBeaconPoints().stream().map(point -> new Point3D(point.getX() + xOffset, point.getY() + yOffset, point.getZ() + zOffset))
+                .collect(Collectors.toList()));
+    }
+
+    private Optional<Point3D> scannerOverlapsWithMap(Scanner scanner, int overlapLimit, Set<Point3D> map) {
+        var mapping = map.stream().flatMap(mapPoint -> scanner.getBeaconPoints().stream().map(scannerPoint -> subtractPoint(mapPoint, scannerPoint)))
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+        var query = mapping.entrySet()
+                .stream()
+                .filter(e -> e.getValue() >= overlapLimit)
+                .findFirst()
+                .map(Map.Entry::getKey);
+
+
+        return query;
+    }
+
+    private Point3D subtractPoint(Point3D a, Point3D b) {
+        return new Point3D(a.getX() - b.getX(), a.getY() - b.getY(), a.getZ() - b.getZ());
+//        return new Point3D(Math.abs(a.getX()) - Math.abs(b.getX()), Math.abs(a.getY()) - Math.abs(b.getY()), Math.abs(a.getZ()) - Math.abs(b.getZ()));
+    }
+
+    private List<Scanner> parseScanners(List<String> input) {
+        LinkedList<Scanner> tmp = new LinkedList<>();
+
+        int startIndex = 0;
+        int endIndex = 0;
+        int scannerID = 0;
+        for (String s : input) {
+            if (s.contains("--- scanner")) {
+                startIndex = endIndex + 1;
+                scannerID = Integer.parseInt(s.substring(12, s.indexOf(" ", 12)));
+            } else if (s.isBlank() || endIndex == input.size() - 1) {
+                tmp.add(new Scanner(scannerID, input.subList(startIndex, endIndex)));
+            }
+            endIndex++;
+        }
+
+        return tmp;
     }
 
     class Scanner {
-        private Point3D location;
-        int id;
-        private List<Beacon> beacons = new LinkedList<>();
-        private int[][] beaconDistanceMatrix;
+        private int id;
+        private Point3D position;
+        private List<Point3D> beaconPositions = new LinkedList<>();
 
-        public Scanner(int id, Point3D location) {
+        public Scanner(int id, List<String> beaconStringPositions) {
             this.id = id;
-            this.location = location;
-        }
 
-        public int[][] getBeaconDistanceMatrix() {
-            return beaconDistanceMatrix;
-        }
+            for (String s : beaconStringPositions) {
+                var split = s.split(",");
 
-        public void addBeacon(Beacon beacon) {
-            beacons.add(beacon);
-        }
-
-        public boolean sharesBeaconToBeaconEdge(int edgeValue) {
-            for (int[] row : beaconDistanceMatrix) {
-                for (int rowCol : row) {
-                    if (rowCol == edgeValue) {
-                        return true;
-                    }
-                }
+                beaconPositions.add(new Point3D(Integer.parseInt(split[0]),
+                        Integer.parseInt(split[1]),
+                        Integer.parseInt(split[2])));
             }
-
-            return false;
         }
 
-        public void calculateBeaconsDistances() {
-            int[][] tmp = new int[beacons.size()][beacons.size()];
-
-            for (int i = 0; i < beacons.size(); i++) {
-                for (int j = i + 1; j < beacons.size(); j++) {
-                    Beacon a = beacons.get(i);
-                    Beacon b = beacons.get(j);
-
-                    if (!a.equals(b)) {
-                        int ret = a.calculateStraightLineDistance(b);
-
-                        tmp[i][j] = tmp[j][i] = ret;
-                    }
-                }
-            }
-
-            beaconDistanceMatrix = tmp;
-        }
-    }
-
-    class Beacon {
-        private Point3D location;
-
-        public Beacon(Point3D location) {
-            this.location = location;
+        public void setPosition(int x, int y, int z) {
+            this.position = new Point3D(x, y, z);
         }
 
-        public Point3D getLocation() {
-            return location;
+        public List<Point3D> getBeaconPoints() {
+            return beaconPositions;
         }
 
-        public int calculateStraightLineDistance(Beacon other) {
-            var x = Math.pow(this.location.getX() - other.location.getX(), 2);
-            var y = Math.pow(this.location.getY() - other.location.getY(), 2);
-            var z = Math.pow(this.location.getZ() - other.location.getZ(), 2);
-
-            var ret = (int) Math.sqrt(x + y + z);
-
-            return (int) Math.sqrt(Math.pow(this.location.getX() - other.location.getX(), 2)
-                    + Math.pow(this.location.getY() - other.location.getY(), 2)
-                    + Math.pow(this.location.getZ() - other.location.getZ(), 2));
+        public Stream<Scanner> getOrientations() {
+            return IntStream
+                    .range(0, 6)
+                    .boxed()
+                    .flatMap(rollIndex -> Stream.concat(Stream.of(this.roll()),
+                            IntStream.range(0, 3).boxed().map(turnIndex -> rollIndex % 2 == 0 ? this.turn() : this.reverseTurn())));
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Beacon beacon = (Beacon) o;
-            return Objects.equals(location, beacon.location);
+        public void addOffsetToPosition(int xOffset, int yOffset, int zOffset) {
+            this.position = this.position == null ? new Point3D(xOffset, yOffset, zOffset) : position.add(xOffset, yOffset, zOffset);
         }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(location);
+        private Scanner turn() {
+            this.beaconPositions.forEach(Point3D::turn);
+
+            return this;
+        }
+
+        private Scanner reverseTurn() {
+            this.beaconPositions.forEach(Point3D::reverseTurn);
+
+            return this;
+        }
+
+        private Scanner roll() {
+            this.beaconPositions.forEach(Point3D::roll);
+
+            return this;
         }
     }
 
     class Point3D {
         private int x;
         private int y;
-        private int z;
-
-        public Point3D(int x, int y, int z) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
 
         public int getX() {
             return x;
@@ -201,27 +173,41 @@ public class Day19 extends Day {
             return z;
         }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            Point3D point3D = (Point3D) o;
-            return x == point3D.x && y == point3D.y && z == point3D.z;
+        private int z;
+
+        public Point3D(int x, int y, int z) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
         }
 
-        @Override
-        public int hashCode() {
-            return Objects.hash(x, y, z);
+        public Point3D add(int x, int y, int z) {
+            this.x += x;
+            this.y += y;
+            this.z += z;
+
+            return this;
         }
 
-        @Override
-        public String
-        toString() {
-            return "Point3D{" +
-                    "x=" + x +
-                    ", y=" + y +
-                    ", z=" + z +
-                    '}';
+        public void roll() {
+            int tmp = y;
+
+            y = z;
+            z = -tmp;
+        }
+
+        public void turn() {
+            int tmp = x;
+
+            x = -y;
+            y = tmp;
+        }
+
+        public void reverseTurn() {
+            int tmp = x;
+
+            x = y;
+            y = -tmp;
         }
     }
 }
