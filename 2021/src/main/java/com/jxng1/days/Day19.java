@@ -3,7 +3,6 @@ package main.java.com.jxng1.days;
 import main.java.com.jxng1.util.InputReader;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Day19 extends Day {
@@ -18,6 +17,7 @@ public class Day19 extends Day {
 
         var ret = parseScanners(InputReader.getInputReader().getInputAsList("day19sample.txt"));
         var tmp = solve(ret);
+        var sorted = tmp.stream().sorted(Comparator.comparing(Point3D::getX)).collect(Collectors.toCollection(LinkedHashSet::new));
 
         return null;
     }
@@ -41,12 +41,17 @@ public class Day19 extends Day {
                     continue;
                 }
 
-                scannerOverlapsMap(map, unlocatedScanner, 12).ifPresent(offset -> {
-                    mapScanner(unlocatedScanner, offset.getX(), offset.getY(), offset.getZ(), map);
+                var overlappingBeacons = scannerOverlapsMap(map, unlocatedScanner, 12);
+                if (overlappingBeacons != null) {
+                    System.out.println(unlocatedScanner.id);
+                    mapScanner(unlocatedScanner, overlappingBeacons, map);
                     locatedScanners.add(unlocatedScanner);
-                    System.out.println("Scanner found: " + unlocatedScanner.id);
-                    System.out.println(locatedScanners.size());
-                });
+                }
+
+//                scannerOverlapsMap(map, unlocatedScanner, 12).ifPresent(offset -> {
+//                    mapScanner(unlocatedScanner, offset.getX(), offset.getY(), offset.getZ(), map);
+//                    locatedScanners.add(unlocatedScanner);
+//                });
             }
         }
 
@@ -56,6 +61,13 @@ public class Day19 extends Day {
     private void mapScanner(Scanner scanner, int xOffset, int yOffset, int zOffset, Set<Point3D> map) {
         scanner.setPosition(xOffset, yOffset, zOffset);
         map.addAll(scanner.getBeaconPoints().stream().map(point -> new Point3D(point.getX() + xOffset, point.getY() + yOffset, point.getZ() + zOffset))
+                .collect(Collectors.toList()));
+    }
+
+    private void mapScanner(Scanner scanner, Set<Point3D> overlappingBeacons, Set<Point3D> map) {
+        Point3D offset = point3DSubtract(map.stream().findFirst().get(), overlappingBeacons.stream().findFirst().get());
+        scanner.setPosition(offset.getX(), offset.getY(), offset.getZ());
+        map.addAll(overlappingBeacons.stream().map(point -> new Point3D(point.getX() + offset.getX(), point.getY() + offset.getY(), point.getZ() + offset.getZ()))
                 .collect(Collectors.toList()));
     }
 
@@ -70,7 +82,7 @@ public class Day19 extends Day {
                 startIndex = endIndex + 1;
                 scannerID = Integer.parseInt(s.substring(12, s.indexOf(" ", 12)));
             } else if (s.isBlank() || endIndex == input.size() - 1) {
-                tmp.add(new Scanner(scannerID, input.subList(startIndex, endIndex + 1).stream().filter(pos -> !pos.isBlank()).collect(Collectors.toList())));
+                tmp.add(new Scanner(scannerID, input.subList(startIndex, endIndex + 1).stream().filter(point -> !point.isBlank()).collect(Collectors.toList())));
             }
             endIndex++;
         }
@@ -78,35 +90,38 @@ public class Day19 extends Day {
         return tmp;
     }
 
-    private Optional<Point3D> scannerOverlapsMap(Set<Point3D> map, Scanner scanner, int overlapLimit) {
-        Map<Point3D, Long> temp = new LinkedHashMap<>();
+    private Set<Point3D> scannerOverlapsMap(Set<Point3D> map, Scanner scanner, int overlapLimit) {
+        Map<Point3D, Set<Point3D>> temp = new LinkedHashMap<>();
+        Map<Point3D, Long> tempx = new LinkedHashMap<>();
 
         for (Point3D p : map) {
-            for (Point3D sp : scanner.orientate()) {
-                Point3D key = point3DSubtract(p, sp);
-                Optional<Point3D> check = temp.keySet().stream().filter(k -> k.getX() == key.getX() && k.getY() == key.getY() && k.getZ() == key.getZ()).findFirst();
+            for (int i = 1; i < 25; i++) {
+                for (Point3D sp : scanner.orientate(i)) {
+                    Point3D key = point3DSubtract(p, sp);
+                    Optional<Point3D> check = temp.keySet().stream().filter(k -> k.equals(key)).findFirst();
 
-                if (check.isPresent()) {
-                    temp.put(check.get(), temp.getOrDefault(check.get(), 0L) + 1L);
+                    if (check.isPresent()) {
+                        temp.get(key).add(sp);
 
-                    if (temp.get(check.get()) >= overlapLimit) {
-                        return check;
+                        tempx.put(check.get(), tempx.getOrDefault(check.get(), 0L) + 1L);
+
+//                        if (temp.get(check.get()) >= overlapLimit) {
+//                            return check;
+//                        }
+                    } else {
+                        temp.put(key, new LinkedHashSet<>());
+                        temp.get(key).add(sp);
+
+                        tempx.put(key, 1L);
                     }
-                } else {
-                    temp.put(key, 1L);
                 }
             }
         }
 
-        return temp.entrySet().stream().filter(entry -> entry.getValue() >= overlapLimit).findFirst().map(Map.Entry::getKey);
-    }
+        var testx = tempx.entrySet().stream().filter(entry -> entry.getValue() >= overlapLimit).collect(Collectors.toList());
+        var filtered = temp.entrySet().stream().filter(entry -> entry.getValue().size() >= overlapLimit).findAny().map(Map.Entry::getValue).orElse(null);
 
-    private Map<Integer, Long> distanceMap(Set<Point3D> map, Scanner scanner) {
-        var temp = map.stream().flatMap(mapPoint -> scanner.getBeaconPoints().stream().map(scannerPoint -> {
-            return (mapPoint.getX() - scannerPoint.getX() + mapPoint.getY() - scannerPoint.getY() + mapPoint.getZ() - scannerPoint.getZ());
-        })).collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-
-        return temp;
+        return filtered;
     }
 
     private Point3D point3DSubtract(Point3D a, Point3D b) {
@@ -136,37 +151,85 @@ public class Day19 extends Day {
             this.position = new Point3D(x, y, z);
         }
 
-        public Set<Point3D> orientate() {
-            Set<Point3D> ret = new LinkedHashSet<>();
-
-            for (Point3D pos : beaconPositions) {
-                ret.add(new Point3D(pos.getX(), pos.getY(), pos.getZ()));
-                ret.add(new Point3D(pos.getX(), -pos.getY(), -pos.getZ()));
-                ret.add(new Point3D(pos.getX(), pos.getZ(), -pos.getY()));
-                ret.add(new Point3D(pos.getX(), -pos.getZ(), pos.getY()));
-                ret.add(new Point3D(-pos.getX(), pos.getY(), -pos.getZ()));
-                ret.add(new Point3D(-pos.getX(), -pos.getY(), pos.getZ()));
-                ret.add(new Point3D(-pos.getX(), pos.getZ(), pos.getY()));
-                ret.add(new Point3D(-pos.getX(), -pos.getZ(), -pos.getY()));
-                ret.add(new Point3D(pos.getY(), pos.getX(), -pos.getZ()));
-                ret.add(new Point3D(pos.getY(), -pos.getX(), pos.getZ()));
-                ret.add(new Point3D(pos.getY(), pos.getZ(), pos.getX()));
-                ret.add(new Point3D(pos.getY(), -pos.getZ(), -pos.getX()));
-                ret.add(new Point3D(-pos.getY(), pos.getX(), pos.getZ()));
-                ret.add(new Point3D(-pos.getY(), -pos.getX(), -pos.getZ()));
-                ret.add(new Point3D(-pos.getY(), pos.getZ(), -pos.getX()));
-                ret.add(new Point3D(-pos.getY(), -pos.getZ(), pos.getX()));
-                ret.add(new Point3D(pos.getZ(), pos.getY(), -pos.getX()));
-                ret.add(new Point3D(pos.getZ(), -pos.getY(), pos.getX()));
-                ret.add(new Point3D(pos.getZ(), pos.getX(), pos.getY()));
-                ret.add(new Point3D(pos.getZ(), -pos.getX(), -pos.getY()));
-                ret.add(new Point3D(-pos.getZ(), pos.getX(), -pos.getY()));
-                ret.add(new Point3D(-pos.getZ(), -pos.getX(), pos.getY()));
-                ret.add(new Point3D(-pos.getZ(), pos.getY(), pos.getX()));
-                ret.add(new Point3D(-pos.getZ(), -pos.getY(), -pos.getX()));
+        public Set<Point3D> orientate(int orientation) {
+            switch (orientation) {
+                case 1 -> { // x, y, z
+                    return beaconPositions.stream().map(point -> new Point3D(point.getX(), point.getY(), point.getZ())).collect(Collectors.toSet());
+                }
+                case 2 -> { // x, -y, -z
+                    return beaconPositions.stream().map(point -> new Point3D(point.getX(), -point.getY(), -point.getZ())).collect(Collectors.toSet());
+                }
+                case 3 -> { // x, z, -y
+                    return beaconPositions.stream().map(point -> new Point3D(point.getX(), point.getZ(), -point.getY())).collect(Collectors.toSet());
+                }
+                case 4 -> { // x, -z, y
+                    return beaconPositions.stream().map(point -> new Point3D(point.getX(), -point.getZ(), point.getY())).collect(Collectors.toSet());
+                }
+                case 5 -> { // -x, y, -z
+                    return beaconPositions.stream().map(point -> new Point3D(-point.getX(), point.getY(), -point.getZ())).collect(Collectors.toSet());
+                }
+                case 6 -> { // -x, -y, z
+                    return beaconPositions.stream().map(point -> new Point3D(-point.getX(), -point.getY(), point.getZ())).collect(Collectors.toSet());
+                }
+                case 7 -> { // -x, z, y
+                    return beaconPositions.stream().map(point -> new Point3D(-point.getX(), point.getZ(), point.getY())).collect(Collectors.toSet());
+                }
+                case 8 -> { // -x, -z, -y
+                    return beaconPositions.stream().map(point -> new Point3D(-point.getX(), -point.getZ(), -point.getY())).collect(Collectors.toSet());
+                }
+                case 9 -> { // y, x, -z
+                    return beaconPositions.stream().map(point -> new Point3D(point.getY(), point.getX(), -point.getZ())).collect(Collectors.toSet());
+                }
+                case 10 -> { // y, -x, z
+                    return beaconPositions.stream().map(point -> new Point3D(point.getY(), -point.getX(), point.getZ())).collect(Collectors.toSet());
+                }
+                case 11 -> { // y, z, x
+                    return beaconPositions.stream().map(point -> new Point3D(point.getY(), point.getZ(), point.getX())).collect(Collectors.toSet());
+                }
+                case 12 -> { // y, -z, -x
+                    return beaconPositions.stream().map(point -> new Point3D(point.getY(), -point.getZ(), -point.getX())).collect(Collectors.toSet());
+                }
+                case 13 -> { // -y, x, z
+                    return beaconPositions.stream().map(point -> new Point3D(-point.getY(), point.getX(), point.getZ())).collect(Collectors.toSet());
+                }
+                case 14 -> { // -y, -x, -z
+                    return beaconPositions.stream().map(point -> new Point3D(-point.getY(), -point.getX(), -point.getZ())).collect(Collectors.toSet());
+                }
+                case 15 -> { // -y, z, -x
+                    return beaconPositions.stream().map(point -> new Point3D(-point.getY(), point.getZ(), -point.getX())).collect(Collectors.toSet());
+                }
+                case 16 -> { // -y, -z, x
+                    return beaconPositions.stream().map(point -> new Point3D(-point.getY(), -point.getZ(), point.getX())).collect(Collectors.toSet());
+                }
+                case 17 -> { // z, y, -x
+                    return beaconPositions.stream().map(point -> new Point3D(point.getZ(), point.getY(), -point.getX())).collect(Collectors.toSet());
+                }
+                case 18 -> { // z, -y, x
+                    return beaconPositions.stream().map(point -> new Point3D(point.getZ(), -point.getY(), point.getX())).collect(Collectors.toSet());
+                }
+                case 19 -> { // z, x, y
+                    return beaconPositions.stream().map(point -> new Point3D(point.getZ(), point.getX(), point.getY())).collect(Collectors.toSet());
+                }
+                case 20 -> { // z, -x, -y
+                    return beaconPositions.stream().map(point -> new Point3D(point.getZ(), -point.getX(), -point.getY())).collect(Collectors.toSet());
+                }
+                case 21 -> { // -z, x, -y
+                    return beaconPositions.stream().map(point -> new Point3D(-point.getZ(), point.getX(), -point.getY())).collect(Collectors.toSet());
+                }
+                case 22 -> { // -z, -x, y
+                    return beaconPositions.stream().map(point -> new Point3D(-point.getZ(), -point.getX(), point.getY())).collect(Collectors.toSet());
+                }
+                case 23 -> { // -z, y, x
+                    return beaconPositions.stream().map(point -> new Point3D(-point.getZ(), point.getY(), point.getX())).collect(Collectors.toSet());
+                }
+                case 24 -> { // -z, -y, -x
+                    return beaconPositions.stream().map(point -> new Point3D(-point.getZ(), -point.getY(), -point.getX())).collect(Collectors.toSet());
+                }
+                default -> {
+                    System.out.println("Error...");
+                    return null;
+                }
             }
-
-            return ret;
         }
 
         public List<Point3D> getBeaconPoints() {
@@ -174,7 +237,7 @@ public class Day19 extends Day {
         }
     }
 
-    class Point3D {
+    class Point3D implements Comparable<Point3D> {
         private int x;
         private int y;
 
@@ -196,6 +259,24 @@ public class Day19 extends Day {
             this.x = x;
             this.y = y;
             this.z = z;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Point3D point3D = (Point3D) o;
+            return x == point3D.x && y == point3D.y && z == point3D.z;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(x, y, z);
+        }
+
+        @Override
+        public int compareTo(Point3D o) {
+            return this.equals(o) ? 0 : Math.abs(this.x - o.x + this.y - o.y + this.z - o.z);
         }
 
         @Override
