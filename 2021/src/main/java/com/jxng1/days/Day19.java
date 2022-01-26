@@ -35,25 +35,42 @@ public class Day19 extends Day {
         mapScanner(base, 0, 0, 0, map);
         locatedScanners.add(base);
 
-        while (locatedScanners.size() < scanners.size()) {
-            for (Scanner unlocatedScanner : scanners) {
-                if (locatedScanners.contains(unlocatedScanner)) {
+        for (Scanner a : scanners) {
+            for (Scanner b : scanners) {
+                if (a.getID() == b.getID() || a.getMap().containsKey(b) || b.getMap().containsKey(a)) {
+                    continue;
+                }
+                if (a.getMap().get(b) != null && !a.getMap().get(b).isEmpty()) {
                     continue;
                 }
 
-                var overlappingBeacons = scannerOverlapsMap(map, unlocatedScanner, 12);
-                if (overlappingBeacons != null) {
-                    System.out.println(unlocatedScanner.id);
-                    mapScanner(unlocatedScanner, overlappingBeacons, map);
-                    locatedScanners.add(unlocatedScanner);
+                Set<Point3D> overlappingPoints = a.calculateOverlappingBeacons(b);
+                if (!overlappingPoints.isEmpty()) {
+                    a.mapScanner(b, overlappingPoints);
+                    b.mapScanner(a, overlappingPoints);
                 }
-
-//                scannerOverlapsMap(map, unlocatedScanner, 12).ifPresent(offset -> {
-//                    mapScanner(unlocatedScanner, offset.getX(), offset.getY(), offset.getZ(), map);
-//                    locatedScanners.add(unlocatedScanner);
-//                });
             }
         }
+
+//        while (locatedScanners.size() < scanners.size()) {
+//            for (Scanner unlocatedScanner : scanners) {
+//                if (locatedScanners.contains(unlocatedScanner)) {
+//                    continue;
+//                }
+//
+//                var overlappingBeacons = scannerOverlapsMap(map, unlocatedScanner, 12);
+//                if (overlappingBeacons != null) {
+//                    System.out.println(unlocatedScanner.id);
+//                    mapScanner(unlocatedScanner, overlappingBeacons, map);
+//                    locatedScanners.add(unlocatedScanner);
+//                }
+//
+////                scannerOverlapsMap(map, unlocatedScanner, 12).ifPresent(offset -> {
+////                    mapScanner(unlocatedScanner, offset.getX(), offset.getY(), offset.getZ(), map);
+////                    locatedScanners.add(unlocatedScanner);
+////                });
+//            }
+//        }
 
         return map;
     }
@@ -134,6 +151,7 @@ public class Day19 extends Day {
         private int id;
         private Point3D position;
         private List<Point3D> beaconPositions = new LinkedList<>();
+        private Map<Scanner, Set<Point3D>> map = new LinkedHashMap<>();
 
         public Scanner(int id, List<String> beaconStringPositions) {
             this.id = id;
@@ -145,6 +163,18 @@ public class Day19 extends Day {
                         Integer.parseInt(split[1]),
                         Integer.parseInt(split[2])));
             }
+        }
+
+        public Map<Scanner, Set<Point3D>> getMap() {
+            return map;
+        }
+
+        public int getID() {
+            return id;
+        }
+
+        public void mapScanner(Scanner scanner, Set<Point3D> points) {
+            map.put(scanner, points);
         }
 
         public void setPosition(int x, int y, int z) {
@@ -234,6 +264,29 @@ public class Day19 extends Day {
 
         public List<Point3D> getBeaconPoints() {
             return beaconPositions;
+        }
+
+        public Set<Point3D> calculateOverlappingBeacons(Scanner other) {
+            Map<Point3D, Set<Point3D>> temp = new LinkedHashMap<>();
+
+            for (Point3D p : beaconPositions) {
+                for (int i = 1; i < 25; i++) {
+                    for (Point3D sp : other.orientate(i)) {
+                        Point3D key = point3DSubtract(p, sp);
+                        Optional<Point3D> check = temp.keySet().stream().filter(k -> k.equals(key)).findFirst();
+
+                        if (check.isPresent()) {
+                            temp.get(key).add(sp);
+                        } else {
+                            temp.put(key, new LinkedHashSet<>());
+                            temp.get(key).add(sp);
+                        }
+                    }
+                }
+            }
+
+            var filtered = temp.entrySet().stream().filter(entry -> entry.getValue().size() >= 12).findAny().map(Map.Entry::getValue).orElse(new LinkedHashSet<>());
+            return filtered;
         }
     }
 
