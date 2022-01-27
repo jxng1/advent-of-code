@@ -27,68 +27,36 @@ public class Day19 extends Day {
         return null;
     }
 
-    private Set<Point3D> solve(List<Scanner> scanners) {
-        LinkedHashSet<Point3D> map = new LinkedHashSet<>();
-        LinkedList<Scanner> locatedScanners = new LinkedList<>();
-
-        Scanner base = scanners.get(0);
-        mapScanner(base, 0, 0, 0, map);
-        locatedScanners.add(base);
-
+    private Set<Point3D> solve(LinkedList<Scanner> scanners) {
         for (Scanner a : scanners) {
             for (Scanner b : scanners) {
                 if (a.getID() == b.getID() || a.getMap().containsKey(b) || b.getMap().containsKey(a)) {
                     continue;
                 }
-                if (a.getMap().get(b) != null && !a.getMap().get(b).isEmpty()) {
+                if (a.getMap().get(b) != null && b.getMap().get(a) != null) {
                     continue;
                 }
 
-                Set<Point3D> overlappingPoints = a.calculateOverlappingBeacons(b);
-                if (!overlappingPoints.isEmpty()) {
-                    a.mapScanner(b, overlappingPoints);
-                    b.mapScanner(a, overlappingPoints);
-                }
+                var entryOptional = a.calculateOverlappingBeacons(b);
+
+                entryOptional.ifPresent(entry -> {
+                    a.mapScanner(b, entry.getKey(), entry.getValue());
+                    b.mapScanner(a, entry.getKey(), entry.getValue());
+                });
             }
         }
 
-//        while (locatedScanners.size() < scanners.size()) {
-//            for (Scanner unlocatedScanner : scanners) {
-//                if (locatedScanners.contains(unlocatedScanner)) {
-//                    continue;
-//                }
-//
-//                var overlappingBeacons = scannerOverlapsMap(map, unlocatedScanner, 12);
-//                if (overlappingBeacons != null) {
-//                    System.out.println(unlocatedScanner.id);
-//                    mapScanner(unlocatedScanner, overlappingBeacons, map);
-//                    locatedScanners.add(unlocatedScanner);
-//                }
-//
-////                scannerOverlapsMap(map, unlocatedScanner, 12).ifPresent(offset -> {
-////                    mapScanner(unlocatedScanner, offset.getX(), offset.getY(), offset.getZ(), map);
-////                    locatedScanners.add(unlocatedScanner);
-////                });
-//            }
-//        }
-
-        return map;
+        return dfsSearch(scanners);
     }
 
-    private void mapScanner(Scanner scanner, int xOffset, int yOffset, int zOffset, Set<Point3D> map) {
-        scanner.setPosition(xOffset, yOffset, zOffset);
-        map.addAll(scanner.getBeaconPoints().stream().map(point -> new Point3D(point.getX() + xOffset, point.getY() + yOffset, point.getZ() + zOffset))
-                .collect(Collectors.toList()));
-    }
-
-    private void mapScanner(Scanner scanner, Set<Point3D> overlappingBeacons, Set<Point3D> map) {
-        Point3D offset = point3DSubtract(map.stream().findFirst().get(), overlappingBeacons.stream().findFirst().get());
+    private void mapScanner(Scanner scanner, Fingerprint print, Set<Point3D> map) {
+        Point3D offset = print.getOffset();
         scanner.setPosition(offset.getX(), offset.getY(), offset.getZ());
-        map.addAll(overlappingBeacons.stream().map(point -> new Point3D(point.getX() + offset.getX(), point.getY() + offset.getY(), point.getZ() + offset.getZ()))
+        map.addAll(print.getOverlappingPoints().stream().map(point -> new Point3D(point.getX() + offset.getX(), point.getY() + offset.getY(), point.getZ() + offset.getZ()))
                 .collect(Collectors.toList()));
     }
 
-    private List<Scanner> parseScanners(List<String> input) {
+    private LinkedList<Scanner> parseScanners(List<String> input) {
         LinkedList<Scanner> tmp = new LinkedList<>();
 
         int startIndex = 0;
@@ -107,51 +75,42 @@ public class Day19 extends Day {
         return tmp;
     }
 
-    private Set<Point3D> scannerOverlapsMap(Set<Point3D> map, Scanner scanner, int overlapLimit) {
-        Map<Point3D, Set<Point3D>> temp = new LinkedHashMap<>();
-        Map<Point3D, Long> tempx = new LinkedHashMap<>();
-
-        for (Point3D p : map) {
-            for (int i = 1; i < 25; i++) {
-                for (Point3D sp : scanner.orientate(i)) {
-                    Point3D key = point3DSubtract(p, sp);
-                    Optional<Point3D> check = temp.keySet().stream().filter(k -> k.equals(key)).findFirst();
-
-                    if (check.isPresent()) {
-                        temp.get(key).add(sp);
-
-                        tempx.put(check.get(), tempx.getOrDefault(check.get(), 0L) + 1L);
-
-//                        if (temp.get(check.get()) >= overlapLimit) {
-//                            return check;
-//                        }
-                    } else {
-                        temp.put(key, new LinkedHashSet<>());
-                        temp.get(key).add(sp);
-
-                        tempx.put(key, 1L);
-                    }
-                }
-            }
-        }
-
-        var testx = tempx.entrySet().stream().filter(entry -> entry.getValue() >= overlapLimit).collect(Collectors.toList());
-        var filtered = temp.entrySet().stream().filter(entry -> entry.getValue().size() >= overlapLimit).findAny().map(Map.Entry::getValue).orElse(null);
-
-        return filtered;
-    }
-
     private Point3D point3DSubtract(Point3D a, Point3D b) {
         return new Point3D(a.getX() - b.getX(),
                 a.getY() - b.getY(),
                 a.getZ() - b.getZ());
     }
 
+    private Set<Point3D> dfsSearch(LinkedList<Scanner> unsolved) {
+        Queue<Scanner> queue = new ArrayDeque<>();
+        boolean[] visited = new boolean[unsolved.size()];
+
+        Scanner base = unsolved.get(0);
+        visited[base.getID()] = true;
+        queue.add(base);
+        Set<Point3D> map = new HashSet<>(base.getBeaconPoints());
+        while (!queue.isEmpty()) {
+            var popped = queue.remove();
+            System.out.println(popped.getID());
+
+            for (Scanner neighbour : popped.getMap().keySet()) {
+                if (!visited[neighbour.getID()]) {
+                    visited[neighbour.getID()] = true;
+                    mapScanner(neighbour, popped.getMap().get(neighbour), map);
+                    queue.add(neighbour);
+                }
+            }
+        }
+
+
+        return map;
+    }
+
     class Scanner {
         private int id;
         private Point3D position;
         private List<Point3D> beaconPositions = new LinkedList<>();
-        private Map<Scanner, Set<Point3D>> map = new LinkedHashMap<>();
+        private Map<Scanner, Fingerprint> map = new LinkedHashMap<>();
 
         public Scanner(int id, List<String> beaconStringPositions) {
             this.id = id;
@@ -165,7 +124,7 @@ public class Day19 extends Day {
             }
         }
 
-        public Map<Scanner, Set<Point3D>> getMap() {
+        public Map<Scanner, Fingerprint> getMap() {
             return map;
         }
 
@@ -173,8 +132,8 @@ public class Day19 extends Day {
             return id;
         }
 
-        public void mapScanner(Scanner scanner, Set<Point3D> points) {
-            map.put(scanner, points);
+        public void mapScanner(Scanner scanner, Point3D offset, Set<Point3D> points) {
+            map.put(scanner, new Fingerprint(offset, points));
         }
 
         public void setPosition(int x, int y, int z) {
@@ -266,7 +225,7 @@ public class Day19 extends Day {
             return beaconPositions;
         }
 
-        public Set<Point3D> calculateOverlappingBeacons(Scanner other) {
+        public Optional<Map.Entry<Point3D, Set<Point3D>>> calculateOverlappingBeacons(Scanner other) {
             Map<Point3D, Set<Point3D>> temp = new LinkedHashMap<>();
 
             for (Point3D p : beaconPositions) {
@@ -280,13 +239,37 @@ public class Day19 extends Day {
                         } else {
                             temp.put(key, new LinkedHashSet<>());
                             temp.get(key).add(sp);
+
+//                            if (temp.get(key).size() >= 12) {
+//                                return temp.get(key);
+//                            }
                         }
                     }
                 }
             }
 
+            //var keyFilter = temp.entrySet().stream().filter(entry -> entry.getValue().size() >= 12).findAny().map(Map.Entry::getKey).get();
             var filtered = temp.entrySet().stream().filter(entry -> entry.getValue().size() >= 12).findAny().map(Map.Entry::getValue).orElse(new LinkedHashSet<>());
-            return filtered;
+
+            return temp.entrySet().stream().filter(entry -> entry.getValue().size() >= 12).findFirst();
+        }
+    }
+
+    class Fingerprint {
+        private Point3D offset;
+        private Set<Point3D> overlappingPoints;
+
+        public Fingerprint(Point3D offset, Set<Point3D> overlappingPoints) {
+            this.offset = offset;
+            this.overlappingPoints = overlappingPoints;
+        }
+
+        public Point3D getOffset() {
+            return offset;
+        }
+
+        public Set<Point3D> getOverlappingPoints() {
+            return overlappingPoints;
         }
     }
 
