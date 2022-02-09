@@ -6,7 +6,7 @@
 ._**
 
 _Hope everyone's doing well. This is my repo of solutions for Advent of Code,
-starting from 2021. I hope to do this in multiple languages, eventually..._ 😂 _!_
+starting from 2021. I hope to do this in multiple languages_ 😂 _!_
 
 - 🎉 **Task 1 Completed**
 
