@@ -34,7 +34,7 @@ starting from 2021. I hope to do this in multiple languages, eventually..._ 😂
 |16|[🎊](2021/src/main/java/com/jxng1/days/Day16.java)|
 |17|[🎊](2021/src/main/java/com/jxng1/days/Day17.java)|
 |18|[🎊](2021/src/main/java/com/jxng1/days/Day18.java)|
-|19|
+|19|[🎊](2021/src/main/java/com/jxng1/days/Day19.java)|
 |20|
 |21|
 |22|
