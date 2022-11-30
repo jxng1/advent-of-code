@@ -14,8 +14,8 @@ starting from 2021. I hope to do this in multiple languages_ 😂 _!_
 
 ---
 
-|_Day_|_2021_|
-|:---:|:---:|
+|_Day_|_2021_|_2022_|
+|:---:|:---:|:---:|
 |1|[🎊](2021/src/main/java/com/jxng1/days/Day1.java)|
 |2|[🎊](2021/src/main/java/com/jxng1/days/Day2.java)|
 |3|[🎊](2021/src/main/java/com/jxng1/days/Day3.java)|
