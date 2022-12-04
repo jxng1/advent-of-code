@@ -18,37 +18,37 @@ public class Day3 extends Day {
     @Override
     protected String task1(List<String> input) {
         return String.valueOf(input.stream()
-                        .map(this::splitCompartments)
-                        .map(s -> new String[]
-                                {
-                                        removeDuplicateCharacters(s[0]),
-                                        removeDuplicateCharacters(s[1])
-                                })
-                        .map(sS ->
-                {
-                    Set<Character> tmp = new HashSet<>();
-                    for (char c0 : sS[0].toCharArray()) {
-                        for (char c1 : sS[1].toCharArray()) {
-                            if (c0 == c1) {
-                                tmp.add(c0);
+                .map(this::splitCompartments)
+                .map(s -> new String[]
+                        {
+                                removeDuplicateCharacters(s[0]),
+                                removeDuplicateCharacters(s[1])
+                        })
+                .map(sS ->
+                        {
+                            Set<Character> tmp = new HashSet<>();
+                            for (char c0 : sS[0].toCharArray()) {
+                                for (char c1 : sS[1].toCharArray()) {
+                                    if (c0 == c1) {
+                                        tmp.add(c0);
+                                    }
+                                }
                             }
+
+                            StringBuilder sb = new StringBuilder();
+                            for (char c : tmp) {
+                                sb.append(c);
+                            }
+
+                            return new String(sb);
                         }
-                    }
-
-                    StringBuilder sb = new StringBuilder();
-                    for (char c : tmp) {
-                        sb.append(c);
-                    }
-
-                    return new String(sb);
-                }
-                // Using a for-loop was faster than regex replacement :eyes:
-//                                {
-//                                    return sS[0].replaceAll("[^" + sS[1] + "]", "");
-//                                }
-                        )
-                        .flatMapToInt(s -> Arrays.stream(s.split("")).mapToInt(c -> calculatePriority(c.charAt(0))))
-                        .sum()
+                        // Using a for-loop was faster than regex replacement :eyes:
+                        // {
+                        //     return sS[0].replaceAll("[^" + sS[1] + "]", "");
+                        // }
+                )
+                .flatMapToInt(s -> Arrays.stream(s.split("")).mapToInt(c -> calculatePriority(c.charAt(0))))
+                .sum()
         );
     }
 
@@ -71,14 +71,14 @@ public class Day3 extends Day {
                             }
 
                             StringBuilder sb = new StringBuilder();
-                            for (char c : common)
-                            {
+                            for (char c : common) {
                                 sb.append(c);
                             }
 
                             return new String(sb);
                         }
-                ).flatMapToInt(s -> Arrays.stream(s.split("")).mapToInt(c -> calculatePriority(c.charAt(0))))
+                )
+                .flatMapToInt(s -> Arrays.stream(s.split("")).mapToInt(c -> calculatePriority(c.charAt(0))))
                 .sum());
     }
 
