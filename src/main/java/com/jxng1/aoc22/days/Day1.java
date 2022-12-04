@@ -26,8 +26,7 @@ public class Day1 extends Day {
                 .stream().reduce(0, Integer::sum));
     }
 
-    Stream<Integer> execute(List<String>input)
-    {
+    Stream<Integer> execute(List<String> input) {
         return Arrays.stream(normaliseInput(input).split(","))
                 .map(line -> Arrays.stream(line.split(" ")).filter(s -> !s.isBlank()).mapToInt(Integer::parseInt).sum());
     }
