@@ -28,7 +28,7 @@ public class Day4 extends Day {
 
     @Override
     protected String task2(List<String> input) {
-        var tmp = String.valueOf(input
+        return String.valueOf(input
                 .stream()
                 .mapToInt(s ->
                         {
@@ -39,8 +39,6 @@ public class Day4 extends Day {
                         }
                 )
                 .sum());
-
-        return null;
     }
 
     boolean isContained(int[] a, int[] b) {
