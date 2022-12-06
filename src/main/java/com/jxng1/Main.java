@@ -5,7 +5,7 @@ package main.java.com.jxng1;
 
 // AOC 2022
 
-import main.java.com.jxng1.aoc22.days.Day5;
+import main.java.com.jxng1.aoc22.days.*;
 
 public class Main {
     public final static int WORKING_YEAR = 2022;
@@ -16,8 +16,8 @@ public class Main {
         //new Day2(2);
         //new Day3(3);
         //new Day4(4);
-        new Day5(5);
-//        new Day6(6);
+        //new Day5(5);
+        new Day6(6);
 //        new Day7(7);
 //        new Day8(8);
 //        new Day9(9);
